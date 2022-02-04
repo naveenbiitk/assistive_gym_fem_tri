@@ -33,7 +33,7 @@ class ObjectHandoverEnv(AssistiveEnv):
         end_effector_velocity = np.linalg.norm(self.robot.get_velocity(self.robot.left_end_effector))
         preferences_score = self.human_preferences(end_effector_velocity=end_effector_velocity, total_force_on_human=self.total_force_on_human, tool_force_at_target=self.tool_force_at_target)
 
-        tool_pos = self.tool.get_pos_orient(1)[0]
+        tool_pos = self.tool.get_pos_orient(-1)[0]
         reward_distance = -np.linalg.norm(self.target_pos - tool_pos) #Penalize distances away from target
         reward_action = -np.linalg.norm(action) #Penalize actions
         reward_force_scratch = 0.0 #Reward force near the target
@@ -111,7 +111,7 @@ class ObjectHandoverEnv(AssistiveEnv):
 
 
     def _get_obs(self, agent=None):
-        tool_pos, tool_orient = self.tool.get_pos_orient(1)
+        tool_pos, tool_orient = self.tool.get_pos_orient(-1)
         tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient)
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
         # Fix joint angles to be in [-pi, pi]

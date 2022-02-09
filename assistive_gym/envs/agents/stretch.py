@@ -46,7 +46,7 @@ class Stretch(Robot):
                                'bed_bathing': [-1.1, -0.1, 0.09],
                                'dressing': [0.75, -0.4, 0.09],
                                'arm_manipulation': [-1.3, 0.1, 0.09],
-                               'object_handover': [-0.85, -0.1, 0.09], 
+                               'object_handover': [-0.5, -1.1, 0.09], 
                                'joint_reaching': [-0.85, -0.1, 0.09]}
         toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], # Initial end effector orientation
                              'feeding': [0, 0, np.pi/2.0],

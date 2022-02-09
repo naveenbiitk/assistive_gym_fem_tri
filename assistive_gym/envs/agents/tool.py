@@ -22,7 +22,7 @@ class Tool(Agent):
         elif task == 'joint_reaching':
             tool = p.loadURDF(os.path.join(directory, 'bed_bathing', 'wiper.urdf'), basePosition=transform_pos, baseOrientation=transform_orient, physicsClientId=id)
         elif task == 'object_handover':
-            tool = p.loadURDF(os.path.join(directory, 'scratcher', 'tool_scratch.urdf'), basePosition=transform_pos, baseOrientation=transform_orient, physicsClientId=id)
+            tool = p.loadURDF(os.path.join(directory, 'handover_object', 'handover_object.urdf'), basePosition=transform_pos, baseOrientation=transform_orient, physicsClientId=id)
         elif task in ['drinking', 'feeding', 'arm_manipulation']:
             if task == 'drinking':
                 visual_filename = os.path.join(directory, 'dinnerware', 'plastic_coffee_cup.obj')

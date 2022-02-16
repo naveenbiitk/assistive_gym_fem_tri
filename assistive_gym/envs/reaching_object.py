@@ -14,10 +14,11 @@ class ReachingObjectEnv(AssistiveEnv):
     def __init__(self, robot, human):
         super(ReachingObjectEnv,self).__init__(robot=robot, human=human, task='reaching_object', obs_robot_len = (23 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices))), obs_human_len = (24 + len(human.controllable_joint_indices)))
 
-    def take_step(self):
+    def step(self, action):
         input_keys = p.getKeyboardEvents(self.id)
         action = self._get_action(input_keys)
         self.take_step(action)
+        print('step completed')
 
     def _get_action(self, input_keys):
         # actions:
@@ -52,7 +53,7 @@ class ReachingObjectEnv(AssistiveEnv):
         }
 
         action = None
-
+        
         return action
 
     def reset(self):

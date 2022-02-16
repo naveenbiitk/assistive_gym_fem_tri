@@ -1,21 +1,17 @@
 import numpy as np
 import pybullet as p
-import optparse
-from scipy.spatial.transform import Rotation as R
 import os
-import cv2
 
 from .env import AssistiveEnv
-from .agents import furniture
 from .agents.furniture import Furniture
-
-
+from .agents.agent import Agent
 
 class ObjectHandoverEnv(AssistiveEnv):
 
     def __init__(self, robot, human):
         super(ObjectHandoverEnv, self).__init__(robot=robot, human=human, task='object_handover', obs_robot_len=(23 + len(robot.controllable_joint_indices) - (len(robot.wheel_joint_indices) if robot.mobile else 0)), obs_human_len=(24 + len(human.controllable_joint_indices)))
         self.blanket_pose_var = False
+
 
 
     def step(self, action):
@@ -39,37 +35,32 @@ class ObjectHandoverEnv(AssistiveEnv):
         reward_force_scratch = 0.0 #Reward force near the target
 
         # reward distance between human and robot
-        robot_pos, robot_orient = self.robot.get_base_pos_orient()
+        self.robot_pos, robot_orient = self.robot.get_base_pos_orient()
         human_pos, human_orient = self.human.get_base_pos_orient()
-        # print("robot_pos:",robot_pos,"\nhuman pos:",human_pos)
-        base_distance = np.linalg.norm(np.subtract(robot_pos[0:2],human_pos[0:2]))
-        # print("base_distance:",base_distance)
-        if base_distance <= 1.0:
-            reward_base_distance = -base_distance
-            print("Too close!")
-
-        #if self.target_contact_pos is not None and np.linalg.norm(self.target_contact_pos - self.prev_target_contact_pos) > 0.001 and self.tool_force_at_target < 10:
-        #Encourage the robot to move around near the target to simulate scratching
+        base_distance = np.linalg.norm(np.subtract(self.robot_pos[0:2],human_pos[0:2])) #distance between robot base and human "base"
+        if base_distance <= 1.0: #arbitrary distance for now
+            reward_base_distance = -base_distance #Penalize base being too close to human
+        else:
+            reward_base_distance = 0
 
         #Discourage movement only for stretch not for pr2
-        self.robot_current_pose,_orient_ = self.robot.get_pos_orient(self.robot.base)
 
-        reward_movement = -3*np.linalg.norm(self.robot_current_pose-self.robot_old_pose)
+        reward_movement = -3*np.linalg.norm(self.robot_pos - self.robot_old_pos)
         
         #only for pr2 not stretch
         #reward_movement=0
 
-        self.robot_old_pose = self.robot_current_pose
+        self.robot_old_pos = self.robot_pos
 
         self.robot_current_arm,_orient_ = self.robot.get_pos_orient(self.robot.left_end_effector)
         
         reward_shake = 0
         if self.task_success>1:
-            reward_shake = -1*np.linalg.norm(self.robot_current_arm-self.robot_old_arm)
+            reward_shake = -1*np.linalg.norm(self.robot_current_arm - self.robot_old_arm)
         
         self.robot_old_arm = self.robot_current_arm
             
-        #print(self.robot_current_pose)
+        #print(self.robot_pos)
         if abs(reward_distance)<self.distance_threshold: #0.03
             reward_force_scratch = 5
             self.task_success = 1
@@ -81,19 +72,27 @@ class ObjectHandoverEnv(AssistiveEnv):
         # if self.total_force_on_human>10:
         #     print('Force on human: ',self.total_force_on_human)
 
+        # head_pos,head_orient = self.human.get_pos_orient(self.human.head)
+        # head_orient_euler = self.get_euler(head_orient)
+        # print("\neuler orientation:",head_orient_euler)
+        # vision_range = ([head_orient_euler[0]+1,0,0],[head_orient_euler[0]-1,0,0]) #gives vision in x coords +- 1 radian (about 60 degrees)
+        # print(vision_range)
+
         ######### Generate line 
         p.removeAllUserDebugItems()
-        wrist_pos,wrist_orient = self.human.get_pos_orient(self.human.right_wrist)
-        self.generate_line(wrist_pos,wrist_orient)
-
-        tool_pos, tool_orient = self.tool.get_pos_orient(0)
-        #tool_pos_real, tool_orient_real = self.robot.convert_to_realworld(tool_pos, tool_orient) useless command
-        self.generate_line(tool_pos,tool_orient)
-
-
+        head_pos,head_orient = self.human.get_pos_orient(self.human.head)
+        self.generate_line(head_pos,head_orient)
+        # self.generate_line(head_pos,vision_range[0])
+        # self.generate_line(head_pos,vision_range[1])
         ##########
 
-        reward = reward_shake + reward_movement +  self.config('distance_weight')*reward_distance + self.config('action_weight')*reward_action + self.config('scratch_reward_weight')*reward_force_scratch + preferences_score
+        reward = (reward_shake
+                + reward_movement
+                + self.config('distance_weight')*reward_distance
+                + self.config('action_weight')*reward_action
+                + self.config('scratch_reward_weight')*reward_force_scratch
+                + self.config('base_distance_weight')*reward_base_distance
+                + preferences_score)
 
         self.total_reward=self.total_reward+reward
         self.prev_target_contact_pos = self.target_contact_pos
@@ -120,11 +119,13 @@ class ObjectHandoverEnv(AssistiveEnv):
 
     def generate_line(self, pos, orient):
         
+        if len(orient) == 3:
+            self.get_quaternion(orient)
         mat = p.getMatrixFromQuaternion(orient)
         dir0 = [mat[0], mat[3], mat[6]]
         dir1 = [mat[1], mat[4], mat[7]]
         dir2 = [mat[2], mat[5], mat[8]]
-        lineLen = 0.1
+        lineLen = 0.5
         dir = [-mat[2], -mat[5], -mat[8]]
 
         to = [pos[0] + lineLen * dir[0], pos[1] + lineLen * dir[1], pos[2] + lineLen * dir[2]]
@@ -207,41 +208,30 @@ class ObjectHandoverEnv(AssistiveEnv):
             wheelchair_pos, wheelchair_orient = self.furniture.get_base_pos_orient()
             self.robot.set_base_pos_orient(wheelchair_pos + np.array(self.robot.toc_base_pos_offset[self.task]), [0, 0, -np.pi/2.0])
 
+        self.table = Furniture()
+        self.table.init("table",self.directory,self.id,self.np_random)
+        self.table.set_base_pos_orient([1.0, -0.5, 0.0],[0, 0, np.pi/2, np.pi/2])
+
+        self.object = Agent()
+        self.object.init(p.loadURDF(os.path.join(self.directory, 'handover_object', 'handover_object.urdf')),self.id,self.np_random, indices=-1)
+        self.object.set_base_pos_orient([0.7, -1.1, 0.9],[0, 0, 0, 1])
+
         # Update robot and human motor gains
         self.robot.motor_gains = self.human.motor_gains = 0.005
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
         joints_positions += [(self.human.j_head_x, self.np_random.uniform(-30, 30)), (self.human.j_head_y, self.np_random.uniform(-30, 30)), (self.human.j_head_z, self.np_random.uniform(-30, 30))]
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None)
-
-        chest_pos, chest_orient = self.human.get_pos_orient(self.human.stomach)
-        ctarget_pos, ctarget_orient = p.multiplyTransforms(chest_pos, chest_orient, [0,0,0], [0, 0, 0, 1], physicsClientId=self.id)
-
-
-
-        self.create_sphere(radius=0.4, mass=0.0, pos=ctarget_pos, visual=True, collision=False, rgba=[1, 0, 0, 0.3])
-
-
-
-
         
         self.generate_target()
 
-        p.resetDebugVisualizerCamera(cameraDistance=1.80, cameraYaw=55, cameraPitch=-30, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
+        p.resetDebugVisualizerCamera(cameraDistance=2.50, cameraYaw=55, cameraPitch=-30, cameraTargetPosition=[-0.2, 0, 0.75], physicsClientId=self.id)
 
         self.tool.init(self.robot, self.task, self.directory, self.id, self.np_random, right=True, mesh_scale=[0.045]*3, alpha=0.75)
 
         target_ee_pos = np.array([-0.2, -0.5, 1.1]) + self.np_random.uniform(-0.05, 0.05, size=3)
         target_ee_orient = self.get_quaternion(self.robot.toc_ee_orient_rpy[self.task])
         self.init_robot_pose(target_ee_pos, target_ee_orient, [(target_ee_pos, target_ee_orient), (self.target_pos, None)], [(self.target_pos, target_ee_orient)], arm='right', tools=[self.tool], collision_objects=[self.human, self.furniture])
-
-        # Open gripper to hold the tool
-        self.robot.set_gripper_open_position(self.robot.right_gripper_indices, self.robot.gripper_pos[self.task], set_instantly=True)
-
-        if not self.robot.mobile:
-            self.robot.set_gravity(0, 0, 0)
-        self.human.set_gravity(0, 0, 0)
-        self.tool.set_gravity(0, 0, 0)
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
 
@@ -258,7 +248,7 @@ class ObjectHandoverEnv(AssistiveEnv):
 
         self.total_reward=0
         
-        self.robot_old_pose,_orient_ = self.robot.get_pos_orient(self.robot.base)
+        self.robot_old_pos,_orient_ = self.robot.get_base_pos_orient()
         self.robot_old_arm,_orient_ = self.robot.get_pos_orient(self.robot.left_end_effector)
 
         if self.human.gender == 'male':
@@ -282,32 +272,3 @@ class ObjectHandoverEnv(AssistiveEnv):
         target_pos, target_orient = p.multiplyTransforms(arm_pos, arm_orient, self.target_on_arm, [0, 0, 0, 1], physicsClientId=self.id)
         self.target_pos = np.array(target_pos)
         self.target.set_base_pos_orient(self.target_pos, [0, 0, 0, 1])
-
-
-    
-    def get_depth_image(self):
-        # * take image after reward computed
-        img, depth = self.get_camera_image_depth()
-
-        far = 2.406
-        near = 1.406
-
-        a_ = (far-near)/(np.max(depth) - np.min(depth))
-        b_ = - (far*np.min(depth)-near*np.max(depth))/(np.max(depth) - np.min(depth))
-        depth = depth*(a_)+b_
-
-        depth = depth*1000
-
-        depth = depth[50:178, 73:127]
-
-        #filename='/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/'
-        #outfile = filename + "after_depth" + str(1) + ".npy"
-        #np.save(outfile, depth)
-        
-        #file = filename + "depth" + str(1) + ".png"
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imshow('color', img)
-        cv2.waitKey(0) 
-
-        return depth
-

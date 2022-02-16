@@ -54,3 +54,9 @@ register(
     entry_point='assistive_gym.envs:ObjectHandoverPR2Env',
     max_episode_steps=200,
 )
+
+register(
+    id='ReachingObjectStretch-v1',
+    entry_point='assistive_gym.envs:ReachingObjectStretchEnv',
+    max_episode_steps=200,
+)

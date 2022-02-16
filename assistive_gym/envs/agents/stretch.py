@@ -47,7 +47,8 @@ class Stretch(Robot):
                                'dressing': [0.75, -0.4, 0.09],
                                'arm_manipulation': [-1.3, 0.1, 0.09],
                                'object_handover': [-0.5, -1.1, 0.09], 
-                               'joint_reaching': [-0.85, -0.1, 0.09]}
+                               'joint_reaching': [-0.85, -0.1, 0.09],
+                               'reaching_object': [-0.5, -1.1, 0.09]}
         toc_ee_orient_rpy = {'scratch_itch': [0, 0, np.pi/2.0], # Initial end effector orientation
                              'feeding': [0, 0, np.pi/2.0],
                              'drinking': [0, 0, np.pi/2.0],
@@ -55,7 +56,8 @@ class Stretch(Robot):
                              'dressing': [[0, 0, -np.pi/2.0]],
                              'arm_manipulation': [0, 0, np.pi/2.0],
                              'object_handover': [0, 0, np.pi/2.0], 
-                             'joint_reaching': [0, 0, np.pi/2.0]}
+                             'joint_reaching': [0, 0, np.pi/2.0],
+                             'reaching_object': [0, 0, np.pi/2.0]}
         wheelchair_mounted = False
 
         self.gains = [0.1]*2 + [0.01] + [0.025]*5

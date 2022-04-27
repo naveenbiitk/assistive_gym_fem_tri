@@ -11,3 +11,4 @@ from assistive_gym.envs.object_handover_envs import ObjectHandoverStretchEnv, Ob
 from assistive_gym.envs.reaching_object_envs import ReachingObjectStretchEnv
 from assistive_gym.envs.human_testing import HumanTestingEnv
 from assistive_gym.envs.smplx_testing import SMPLXTestingEnv
+from assistive_gym.envs.testing_envs import TestingStretchEnv

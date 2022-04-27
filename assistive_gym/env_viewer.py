@@ -8,9 +8,17 @@ if sys.version_info < (3, 0):
     exit()
 
 def sample_action(env, coop):
-    if coop:
-        return {'robot': env.action_space_robot.sample(), 'human': env.action_space_human.sample()}
-    return env.action_space.sample()
+    current_pose = env.robot.get_joint_angles([3])
+    desired_height = 0.9
+    error = desired_height - current_pose
+    kp = 1.
+    action = np.zeros_like(env.action_space_robot.sample())
+    action[2] = kp * error
+    return action
+    # old
+    # if coop:
+    #     return {'robot': env.action_space_robot.sample(), 'human': env.action_space_human.sample()}
+    # return env.action_space.sample()
 
 def viewer(env_name):
     coop = 'Human' in env_name

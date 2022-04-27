@@ -60,3 +60,9 @@ register(
     entry_point='assistive_gym.envs:ReachingObjectStretchEnv',
     max_episode_steps=200,
 )
+
+register(
+    id='TestingStretch-v1',
+    entry_point='assistive_gym.envs:TestingStretchEnv',
+    max_episode_steps=200,
+)

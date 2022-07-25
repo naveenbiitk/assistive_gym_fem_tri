@@ -34,7 +34,7 @@ class Robot(Agent):
         self.flags = flags # Used to store any additional information for the robot
         self.has_single_arm = self.right_end_effector == self.left_end_effector
         self.motor_forces = 1.0
-        self.gripper_included = True
+        self.gripper_included = False
         self.motor_gains = 0.05
         self.skip_pose_optimization = False
         super(Robot, self).__init__()

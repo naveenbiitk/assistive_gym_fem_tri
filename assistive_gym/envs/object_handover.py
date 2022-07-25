@@ -71,7 +71,7 @@ class ObjectHandoverEnv(AssistiveEnv):
 
         if reward_base_direction(head_pose, head_orient, self.robot_current_pose):
             reward_robot_orientation = 5
-            print('Robot in orientation with human')
+            #print('Robot in orientation with human')
         else:
             reward_robot_orientation = 0
 
@@ -99,6 +99,21 @@ class ObjectHandoverEnv(AssistiveEnv):
         head_t_pos,head_t_orient = self.human.get_pos_orient(self.human.head)
         #self.generate_line(head_t_pos,head_t_orient)
         wrt_pos,wrt_orient = self.human.get_pos_orient(self.human.right_wrist)
+        #self.generate_line(head_t_pos,head_t_orient)
+        ank_pos,ank_orient = self.human.get_pos_orient(self.human.right_ankle )
+        #self.generate_line(ank_pos,ank_orient)
+        #self.mouth_pos = [0, -0.11, 0.03] if self.human.gender == 'male' else [0, -0.1, 0.03]        
+ 
+        eye_pos = [0, -0.11, 0.1] if self.human.gender == 'male' else [0, -0.1, 0.1] # orientation needed is [0, 0, 0.707, -0.707]
+        right_ear_pos = [-0.08, -0.011, 0.08] if self.human.gender == 'male' else [-0.08, -0.01, 0.08]
+        
+        #mouth_pos, mouth_orient = p.multiplyTransforms(head_t_pos, head_t_orient, eye_pos, [0, 0, 0, 1], physicsClientId=self.id)
+        #wrt_pos,wrt_orient = self.human.get_pos_orient(self.human.right_wrist)
+        #self.generate_line(mouth_pos, mouth_orient)
+
+        mouth_pos, mouth_orient = p.multiplyTransforms(head_t_pos, head_t_orient, right_ear_pos, [0, 0, 0.707, -0.707], physicsClientId=self.id)
+        #self.generate_line(mouth_pos, mouth_orient)
+
         #self.generate_line_hand(wrt_pos,wrt_orient,0.3)
 
         tool_pos, tool_orient = self.tool.get_pos_orient(0)
@@ -135,8 +150,9 @@ class ObjectHandoverEnv(AssistiveEnv):
 
 
 
-    def generate_line(self, pos, orient, lineLen=1.5):
+    def generate_line(self, pos, orient, lineLen=0.5):
         
+        #p.removeAllUserDebugItems()
         mat = p.getMatrixFromQuaternion(orient)
         dir0 = [mat[0], mat[3], mat[6]]
         dir1 = [mat[1], mat[4], mat[7]]
@@ -156,13 +172,14 @@ class ObjectHandoverEnv(AssistiveEnv):
         toY = [pos[0] + lineLen * dir1[0], pos[1] + lineLen * dir1[1], pos[2] + lineLen * dir1[2]]
         toZ = [pos[0] + lineLen * dir2[0], pos[1] + lineLen * dir2[1], pos[2] + lineLen * dir2[2]]
         
-        p.addUserDebugLine(pos, toX, [1, 0, 0], 5)
-        p.addUserDebugLine(pos, toY, [0, 1, 0], 5)
-        p.addUserDebugLine(pos, toZ, [0, 0, 1], 5)
+        #p.addUserDebugLine(pos, toX, [1, 0, 0], 5)
+        toY = [pos[0] - lineLen * dir1[0], pos[1] - lineLen * dir1[1], pos[2] - lineLen * dir1[2]]
+        p.addUserDebugLine(pos, toY, [1, 0, 0], 5)
+        #p.addUserDebugLine(pos, toZ, [0, 0, 1], 5)
 
-        p.addUserDebugLine(pos, to1, [0, 1, 1], 5, 3)
-        p.addUserDebugLine(pos, to2, [0, 1, 1], 5, 3)
-        p.addUserDebugLine(to2, to1, [0, 1, 1], 5, 3)
+        #p.addUserDebugLine(pos, to1, [0, 1, 1], 5, 3)
+        #p.addUserDebugLine(pos, to2, [0, 1, 1], 5, 3)
+        #p.addUserDebugLine(to2, to1, [0, 1, 1], 5, 3)
 
 
 
@@ -218,7 +235,7 @@ class ObjectHandoverEnv(AssistiveEnv):
         robot_joint_angles = self.robot.get_joint_angles(self.robot.controllable_joint_indices)
         # Fix joint angles to be in [-pi, pi]
         robot_joint_angles = (np.array(robot_joint_angles) + np.pi) % (2*np.pi) - np.pi
-        if not self.robot.mobile:
+        if self.robot.mobile:
             # Don't include joint angles for the wheels
             robot_joint_angles = robot_joint_angles[len(self.robot.wheel_joint_indices):]
         
@@ -268,7 +285,10 @@ class ObjectHandoverEnv(AssistiveEnv):
         self.robot.motor_gains = self.human.motor_gains = 0.005
 
         joints_positions = [(self.human.j_right_elbow, -90), (self.human.j_left_elbow, -90), (self.human.j_right_hip_x, -90), (self.human.j_right_knee, 80), (self.human.j_left_hip_x, -90), (self.human.j_left_knee, 80)]
-        joints_positions += [(self.human.j_head_x, -self.np_random.uniform(0, 10)), (self.human.j_head_y, -self.np_random.uniform(0, 10)), (self.human.j_head_z, -self.np_random.uniform(0, 10))]
+        #joints_positions += [(self.human.j_head_x, -self.np_random.uniform(0, 10)), (self.human.j_head_y, -self.np_random.uniform(0, 10)), (self.human.j_head_z, -self.np_random.uniform(0, 10))]
+        joints_positions += [(self.human.j_head_x, 10), (self.human.j_head_y, 10), (self.human.j_head_z, -10)]        
+        joints_positions += [(self.human.j_neck, 10)]
+
         self.human.setup_joints(joints_positions, use_static_joints=True, reactive_force=None)
 
         chest_pos, chest_orient = self.human.get_pos_orient(self.human.stomach)
@@ -276,6 +296,8 @@ class ObjectHandoverEnv(AssistiveEnv):
 
         #self.create_sphere(radius=0.4, mass=0.0, pos=ctarget_pos, visual=True, collision=False, rgba=[1, 0, 0, 0.3]
 
+        for joints_j in self.human.controllable_joint_indices:
+            self.human.enable_force_torque_sensor(joints_j) 
         
         self.generate_target()
 
@@ -292,7 +314,8 @@ class ObjectHandoverEnv(AssistiveEnv):
 
         if not self.robot.mobile:
             self.robot.set_gravity(0, 0, 0)
-        self.human.set_gravity(0, 0, 0)
+        
+        self.human.set_gravity(0, 0, -9.81)
         self.tool.set_gravity(0, 0, 0)
 
         p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations=10, physicsClientId=self.id)
@@ -322,7 +345,8 @@ class ObjectHandoverEnv(AssistiveEnv):
         arm_pos, arm_orient = self.human.get_pos_orient(self.limb)
         target_pos, target_orient = p.multiplyTransforms(arm_pos, arm_orient, self.target_on_arm, [0, 0, 0, 1], physicsClientId=self.id)
 
-        self.target = self.create_sphere(radius=0.0, mass=0.0, pos=target_pos, visual=True, collision=False, rgba=[0, 1, 1, 1])
+        #self.target = self.create_sphere(radius=0.01, mass=0.0, pos=target_pos, visual=True, collision=False, rgba=[0, 1, 1, 1])
+        self.target = target_pos
         #self.create_sphere(radius=0.1, mass=0.0, pos=arm_pos, visual=True, collision=False, rgba=[0, 0, 1, 1])
 
         self.update_targets()
@@ -334,7 +358,7 @@ class ObjectHandoverEnv(AssistiveEnv):
         target_pos, target_orient = p.multiplyTransforms(arm_pos, arm_orient, self.target_on_arm, [0, 0, 0, 1], physicsClientId=self.id)
         self.target_pos = np.array(target_pos)
         self.target_orient = np.array(target_orient)
-        self.target.set_base_pos_orient(self.target_pos, [0, 0, 0, 1])
+        #self.target.set_base_pos_orient(self.target_pos, [0, 0, 0, 1])
         #print('Handover pose in main environment ',self.target_pos)
 
     

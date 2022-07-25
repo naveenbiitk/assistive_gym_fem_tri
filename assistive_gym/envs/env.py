@@ -44,7 +44,7 @@ class AssistiveEnv(gym.Env):
         self.obs_human_len = obs_human_len if human is not None and human.controllable else 0
         self.observation_space = spaces.Box(low=np.array([-1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), high=np.array([1000000000.0]*(self.obs_robot_len+self.obs_human_len), dtype=np.float32), dtype=np.float32)
         # self.action_space_robot = spaces.Box(low=np.array([-1.0]*self.action_robot_len, dtype=np.float32), high=np.array([1.0]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
-        self.action_space_robot = spaces.Box(low=np.array([-0.5]*self.action_robot_len, dtype=np.float32), high=np.array([0.5]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
+        self.action_space_robot = spaces.Box(low=np.array([-1.0]*self.action_robot_len, dtype=np.float32), high=np.array([1.0]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
         self.action_space_human = spaces.Box(low=np.array([-1.0]*self.action_human_len, dtype=np.float32), high=np.array([1.0]*self.action_human_len, dtype=np.float32), dtype=np.float32)
         # self.action_space_human = spaces.Box(low=np.array([0.0,  0.0,  5.31665415e-01,  1.34692067e-01, -9.64689935e-02, -2.42673015e-01, -1.64185327e+00,  0.0,  0.0,  0.0], dtype=np.float32),
                                             # high=np.array([0.0,  0.0, 0.0,  0.6285238 - 0.5,  -1.2184946,   0.0 + 0.25,  -2.2070327,  0.0, 0.0, 0.0], dtype=np.float32), dtype=np.float32)
@@ -146,7 +146,7 @@ class AssistiveEnv(gym.Env):
             self.action_human_len = len(self.human.controllable_joint_indices) if self.human.controllable else 0
             self.obs_robot_len = len(self._get_obs('robot'))
             self.obs_human_len = len(self._get_obs('human'))
-            self.action_space_robot = spaces.Box(low=np.array([-1.0]*self.action_robot_len, dtype=np.float32), high=np.array([1.0]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
+            self.action_space_robot = spaces.Box(low=np.array([-0.05]*self.action_robot_len, dtype=np.float32), high=np.array([0.05]*self.action_robot_len, dtype=np.float32), dtype=np.float32)
             self.action_space_human = spaces.Box(low=np.array([-1.0]*self.action_human_len, dtype=np.float32), high=np.array([1.0]*self.action_human_len, dtype=np.float32), dtype=np.float32)
             self.observation_space_robot = spaces.Box(low=np.array([-1000000000.0]*self.obs_robot_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_robot_len, dtype=np.float32), dtype=np.float32)
             self.observation_space_human = spaces.Box(low=np.array([-1000000000.0]*self.obs_human_len, dtype=np.float32), high=np.array([1000000000.0]*self.obs_human_len, dtype=np.float32), dtype=np.float32)
@@ -209,7 +209,7 @@ class AssistiveEnv(gym.Env):
             # Append the new action to the current measured joint angles
             agent_joint_angles = agent.get_joint_angles(agent.controllable_joint_indices)
             # Update the target robot/human joint angles based on the proposed action and joint limits
-            for _ in range(self.frame_skip):
+            for _ in range(self.frame_skip):#frame_skip is 5
                 if needs_action:
                     below_lower_limits = agent_joint_angles + action < agent.controllable_joint_lower_limits
                     above_upper_limits = agent_joint_angles + action > agent.controllable_joint_upper_limits
@@ -217,6 +217,7 @@ class AssistiveEnv(gym.Env):
                     action[above_upper_limits] = 0
                     agent_joint_angles[below_lower_limits] = agent.controllable_joint_lower_limits[below_lower_limits]
                     agent_joint_angles[above_upper_limits] = agent.controllable_joint_upper_limits[above_upper_limits]
+                    #print('Needs action loop',self.frame_skip)
                 if isinstance(agent, Human) and agent.impairment == 'tremor':
                     if needs_action:
                         agent.target_joint_angles += action
@@ -229,7 +230,8 @@ class AssistiveEnv(gym.Env):
             if isinstance(agent, Robot) and agent.action_duplication is not None:
                 agent_joint_angles = np.concatenate([[a]*d for a, d in zip(agent_joint_angles, self.robot.action_duplication)])
                 agent.control(agent.all_controllable_joints, agent_joint_angles, agent.gains, agent.forces)
-                
+                #print('Full actions',agent.all_controllable_joints, agent_joint_angles, agent.gains, agent.forces)
+                #stretch testing above control command is neccesary
                 if agent.gripper_included:
                     agent.perform_special_gripper_action(action_name, agent.left_gripper_indices)
                     #print('Full actions', actions)
@@ -242,15 +244,19 @@ class AssistiveEnv(gym.Env):
             # Update all agent positions
             for _ in range(self.frame_skip):
                 p.stepSimulation(physicsClientId=self.id)
+
                 for agent in self.agents:
                     if isinstance(agent, Human):
+                        
                         agent.enforce_joint_limits()
                         if agent.controllable:
+                            #realistic limit disabled
                             agent.enforce_realistic_joint_limits()
                 self.update_targets()
                 if self.gui:
                     # Slow down time so that the simulation matches real time
                     # pass
+                    #print('frame_skip')
                     self.slow_time()
 
 

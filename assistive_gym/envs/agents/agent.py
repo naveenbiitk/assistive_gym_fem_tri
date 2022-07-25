@@ -1,5 +1,7 @@
 import numpy as np
 import pybullet as p
+#from assistive_gym.naveenb_utils.data_logger import Logger
+
 
 class Agent:
     def __init__(self):
@@ -10,9 +12,12 @@ class Agent:
         self.ik_lower_limits = None
         self.ik_upper_limits = None
         self.ik_joint_names = None
+        #self.logger = Logger('/nethome/nnagarathinam6/wut.txt')
+
 
     def init_env(self, body, env, indices=None):
         self.init(body, env.id, env.np_random, indices)
+
 
     def init(self, body, id, np_random, indices=None):
         self.body = body
@@ -25,11 +30,14 @@ class Agent:
             self.controllable_joint_lower_limits = np.array([self.lower_limits[i] for i in self.controllable_joint_indices])
             self.controllable_joint_upper_limits = np.array([self.upper_limits[i] for i in self.controllable_joint_indices])
 
+
     def control(self, indices, target_angles, gains, forces):
         if type(gains) in [int, float]:
             gains = [gains]*len(indices)
         if type(forces) in [int, float]:
             forces = [forces]*len(indices)
+        #print('SJCM',indices,target_angles)
+
         p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=target_angles, positionGains=gains, forces=forces, physicsClientId=self.id)
 
 
@@ -170,6 +178,15 @@ class Agent:
     def set_joint_angles(self, indices, angles, use_limits=True, velocities=0):
         for i, (j, a) in enumerate(zip(indices, angles)):
             p.resetJointState(self.body, jointIndex=j, targetValue=min(max(a, self.lower_limits[j]), self.upper_limits[j]) if use_limits else a, targetVelocity=velocities if type(velocities) in [int, float] else velocities[i], physicsClientId=self.id)
+
+
+    # def control(self, indices, target_angles, gains, forces):
+    #     if type(gains) in [int, float]:
+    #         gains = [gains]*len(indices)
+    #     if type(forces) in [int, float]:
+    #         forces = [forces]*len(indices)
+    #     p.setJointMotorControlArray(self.body, jointIndices=indices, controlMode=p.POSITION_CONTROL, targetPositions=target_angles, positionGains=gains, forces=forces, physicsClientId=self.id)
+
 
     def set_on_ground(self, base_height=None):
         if base_height is None:

@@ -12,6 +12,9 @@ head_joints = [20, 21, 22, 23]
 # [right_shoulder_z, right_elbow]
 # motion_right_arm_joints = [5, 7]
 motion_right_arm_joints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+torso_joints = [24, 25, 26, 27]
+all_joints = right_arm_joints + left_arm_joints + right_leg_joints + left_leg_joints + head_joints + torso_joints
+
 
 class Human(Agent):
     def __init__(self, controllable_joint_indices, controllable=False):
@@ -31,8 +34,8 @@ class Human(Agent):
         self.left_shoulder = 15
         self.left_elbow = 17
         self.left_wrist = 19
-        self.neck = 20
-        self.head = 23
+        self.neck = 20  # 20 neck
+        self.head = 23  #--> 21 22 23 for head
         self.stomach = 24
         self.waist = 27
         self.right_hip = 30

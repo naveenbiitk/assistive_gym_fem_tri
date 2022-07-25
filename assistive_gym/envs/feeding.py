@@ -42,6 +42,7 @@ class FeedingEnv(AssistiveEnv):
             # Co-optimization with both human and robot controllable
             return obs, {'robot': reward, 'human': reward}, {'robot': done, 'human': done, '__all__': done}, {'robot': info, 'human': info}
 
+
     def get_total_force(self):
         robot_force_on_human = np.sum(self.robot.get_contact_points(self.human)[-1])
         spoon_force_on_human = np.sum(self.tool.get_contact_points(self.human)[-1])

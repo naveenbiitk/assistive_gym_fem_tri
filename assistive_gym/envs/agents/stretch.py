@@ -7,7 +7,7 @@ class Stretch(Robot):
     def __init__(self, controllable_joints='right'):
         # right_arm_joint_indices = [0, 1, 3, 5, 6, 7, 8, 9] # Controllable arm joints
         # comment for joint motion right_arm_joint_indices = [3, 5, 9] # Controllable arm joints
-        right_arm_joint_indices = [3, 5, 9]
+        right_arm_joint_indices = [3, 5, 9]  #3 lift  9 is yaw
         left_arm_joint_indices = right_arm_joint_indices # Controllable arm joints
         wheel_joint_indices = [0, 1] # Controllable wheel joints
         right_end_effector = 15 # Used to get the pose of the end effector
@@ -27,13 +27,15 @@ class Stretch(Robot):
                        'arm_manipulation': [0.1, 0.1],
                        'stretch_testing': [0.1, 0.1],
                        'object_handover': [0.1, 0.1],
+                       'show_phone': [0.1, 0.1],
                        'joint_motion': [0.2, 0.2], 
                        'joint_reaching': [0.1, 0.1]}
         tool_pos_offset = {'scratch_itch': [0, 0, 0], # Position offset between tool and robot tool joint
                            'feeding': [0.1, 0, -0.02],
                            'drinking': [0, 0, -0.05],
                            'bed_bathing': [0, 0, 0],
-                           'object_handover': [0, 0, 0], 
+                           'object_handover': [0, 0, 0],
+                           'show_phone': [0, 0, 0], 
                            'joint_motion': [0, 0, 0], 
                            'stretch_testing': [0.11, 0, -0.07],
                            'arm_manipulation': [0.11, 0, -0.07],
@@ -45,6 +47,7 @@ class Stretch(Robot):
                               'arm_manipulation': [np.pi/2.0, 0, 0],
                               'stretch_testing': [0, 0, 0],
                               'object_handover': [0, 0, 0],
+                              'show_phone': [0, 0, 0],
                               'joint_motion': [0, 0, 0],
                                'joint_reaching': [np.pi/2.0, 0, 0] }
         toc_base_pos_offset = {'scratch_itch': [-1.0, -0.1, 0.09], # Robot base offset before TOC base pose optimization
@@ -54,6 +57,7 @@ class Stretch(Robot):
                                'dressing': [0.75, -0.4, 0.09],
                                'arm_manipulation': [-1.3, 0.1, 0.09],
                                'object_handover': [-0.85, -0.1, 0.09],
+                               'show_phone': [-0.85, -0.1, 0.09],
                                'joint_motion': [-1.85, -0.1, 0.09],
                                'stretch_testing': [0.25, 0.25, 0.09], 
                                'joint_reaching': [-1.25, -0.1, 0.09]}
@@ -64,7 +68,8 @@ class Stretch(Robot):
                              'dressing': [[0, 0, -np.pi/2.0]],
                              'arm_manipulation': [0, 0, np.pi/2.0],
                              'stretch_testing': [0, 0, -np.pi/2.0],
-                             'object_handover': [0, 0, np.pi/2.0], 
+                             'object_handover': [0, 0, np.pi/2.0],
+                             'show_phone': [0, 0, np.pi/2.0], 
                              'joint_motion': [0, 0, np.pi/2.0], 
                              'joint_reaching': [0, 0, np.pi/2.0]}
         wheelchair_mounted = False
@@ -76,23 +81,27 @@ class Stretch(Robot):
         # self.action_multiplier = [3, 0, 0, 1, 0, 1, 1] # Adjust the speed of each motor by a multiplier of the default speed
         # self.all_controllable_joints = [0, 1, 3, 5, 6, 7, 8, 9, 11, 13] if 'wheel' in controllable_joints else [3, 5, 6, 7, 8, 9, 11, 13]
 
-        self.gains = [0.1]*2 + [0.01] + [0.025]*5 
-        self.forces = [10]*2 + [20] + [10]*5 
+        self.gains = [0.1]*2 + [0.01] + [0.025]*5 if 'wheel' in controllable_joints else [0.01] + [0.025]*5  
+        self.forces = [10]*2 + [20] + [10]*5 if 'wheel' in controllable_joints else [20] + [10]*5 
         
         self.action_duplication = [1, 1, 1, 4, 1] if 'wheel' in controllable_joints else [1, 4, 1] # The urdf models the prismatic arm as multiple joints, but we want only 1 action to control all of them.
-        self.action_multiplier = [3, 0, 0, 1, 0] # Adjust the speed of each motor by a multiplier of the default speed
+        #self.action_multiplier = [3, 0, 0, 1, 0] #joint motion environment uncomment
+        # Adjust the speed of each motor by a multiplier of the default speed
+        # self.action_multiplier = [3, 3, 2, 1, 2] if 'wheel' in controllable_joints else [2, 1, 2]
+        self.action_multiplier = [1, 1, 1, 1, 1] if 'wheel' in controllable_joints else [1, 1, 1]
         self.all_controllable_joints = [0, 1, 3, 5, 6, 7, 8, 9] if 'wheel' in controllable_joints else [3, 5, 6, 7, 8, 9]
 
-        #self.action_duplication = [1, 1, 4, 1] if 'wheel' in controllable_joints else [ 4, 1] # The urdf models the prismatic arm as multiple joints, but we want only 1 action to control all of them.
-        #self.action_multiplier = [3, 3, 1, 2] # Adjust the speed of each motor by a multiplier of the default speed
-        #self.all_controllable_joints = [0, 1, 5, 6, 7, 8, 9] if 'wheel' in controllable_joints else [ 5, 6, 7, 8, 9]
-        self.controllable_joint_indices = [0, 1, 3, 5, 9]
+        # self.action_duplication = [1, 1, 4, 1] if 'wheel' in controllable_joints else [ 4, 1] # The urdf models the prismatic arm as multiple joints, but we want only 1 action to control all of them.
+        # self.action_multiplier = [3, 3, 1, 2] # Adjust the speed of each motor by a multiplier of the default speed
+        # self.all_controllable_joints = [0, 1, 5, 6, 7, 8, 9] if 'wheel' in controllable_joints else [ 5, 6, 7, 8, 9]
+        # self.controllable_joint_indices = [0, 1, 3, 5, 9]  # joint motion environment uncomment
 
-        print('Inside stretch: ', controllable_joints)
-        super(Stretch, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=self.controllable_joint_indices, action_duplication=self.action_duplication, action_multiplier=self.action_multiplier, flags='stretch')
+        #print('Inside stretch: ', controllable_joints)
+        #super(Stretch, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=self.controllable_joint_indices, action_duplication=self.action_duplication, action_multiplier=self.action_multiplier, flags='stretch')
+        super(Stretch, self).__init__(controllable_joints, right_arm_joint_indices, left_arm_joint_indices, wheel_joint_indices, right_end_effector, left_end_effector, right_gripper_indices, left_gripper_indices, gripper_pos, right_tool_joint, left_tool_joint, tool_pos_offset, tool_orient_offset, right_gripper_collision_indices, left_gripper_collision_indices, toc_base_pos_offset, toc_ee_orient_rpy, wheelchair_mounted, half_range=False, controllable_joint_indices=None, action_duplication=self.action_duplication, action_multiplier=self.action_multiplier, flags='stretch')
 
     def randomize_init_joint_angles(self, task, offset=0):
-        if task in ['bed_bathing', 'dressing','object_handover']:
+        if task in ['bed_bathing', 'dressing','object_handover','stretch_testing']:
             self.set_joint_angles([3], [0.95+self.np_random.uniform(-0.1, 0.1)])
         else:
             self.set_joint_angles([3], [0.75+self.np_random.uniform(-0.05, 0.05)])

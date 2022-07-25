@@ -73,3 +73,64 @@ register(
     entry_point='assistive_gym.envs:JointMotionPR2Env',
     max_episode_steps=200,
 )
+
+register(
+    id='ShowPhoneStretch-v1', 
+    entry_point='assistive_gym.envs:ShowPhoneStretchEnv',
+    max_episode_steps=200,
+)
+
+register(
+    id='ShowPhonePR2-v1', 
+    entry_point='assistive_gym.envs:ShowPhonePR2Env',
+    max_episode_steps=200,
+)
+
+
+register(
+    id='TestTask-v1',
+    entry_point='assistive_gym.envs:TestEnv',
+    max_episode_steps=1,
+)
+
+register(
+    id='ControlTest-v1',
+    entry_point='assistive_gym.envs:ControlPR2Env',
+    max_episode_steps=200
+)
+
+register(
+    id='OptimizationTest-v1',
+    entry_point='assistive_gym.envs:OptimizationEnv',
+    max_episode_steps=200
+)
+
+register(
+    id='StableRestingPose-v1',
+    entry_point='assistive_gym.envs:StableRestingPoseEnv',
+    max_episode_steps=100,
+)
+
+register(
+    id='DropRestingPose-v1',
+    entry_point='assistive_gym.envs:DropRestingPoseEnv',
+    max_episode_steps=999999,
+)
+
+register(
+    id='TestTask-v1',
+    entry_point='assistive_gym.envs:TestEnv',
+    max_episode_steps=1,
+)
+
+register(
+    id='ControlTest-v1',
+    entry_point='assistive_gym.envs:ControlPR2Env',
+    max_episode_steps=200
+)
+
+register(
+    id='OptimizationTest-v1',
+    entry_point='assistive_gym.envs:OptimizationEnv',
+    max_episode_steps=200
+)

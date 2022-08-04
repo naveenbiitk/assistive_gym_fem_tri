@@ -59,14 +59,12 @@ class HumanTestingEnv(AssistiveEnv):
 
         #self.human.set_joint_angles(self.human.right_arm_joints, target_pose_angles)
 
-
         #self.point = self.create_sphere(radius=0.01, mass=0.0, pos=[0, 0, human_height], visual=True, collision=False, rgba=[0, 1, 1, 1])
 
         p.setGravity(0, 0, -1, physicsClientId=self.id)
         #p.resetDebugVisualizerCamera(cameraDistance=1.6, cameraYaw=0, cameraPitch=-30, cameraTargetPosition=[0, 0, human_height/2.0], physicsClientId=self.id)
         for _ in range(300):
             p.stepSimulation(physicsClientId=self.id)
-
 
         # Lock human joints and set velocities to 0
         joints_positions = []
@@ -79,7 +77,6 @@ class HumanTestingEnv(AssistiveEnv):
 
         #self.blanket = p.loadSoftBody(os.path.join(self.directory, 'clothing', 'blanket_2089v.obj'),scale=0.75, mass=0.15, useBendingSprings=1, useMassSpring=1, springElasticStiffness=1, springDampingStiffness=0.0005, springDampingAllDirections=1, springBendingStiffness=0, useSelfCollision=1, collisionMargin=0.006, frictionCoeff=0.5, useFaceContact=1, physicsClientId=self.id)
                               
-
         # p.changeVisualShape(self.blanket, -1, rgbaColor=[0, 0, 1, 0.75], flags=0, physicsClientId=self.id)
         # p.changeVisualShape(self.blanket, -1, flags=p.VISUAL_SHAPE_DOUBLE_SIDED, physicsClientId=self.id)
         # p.setPhysicsEngineParameter(numSubSteps=4, numSolverIterations = 4, physicsClientId=self.id)

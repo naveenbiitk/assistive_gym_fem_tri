@@ -8,6 +8,7 @@ from math import sin,cos
 from PIL import Image
 import pickle
 import cma
+import yaml
 
 best_params = []
 best_costs = []
@@ -123,12 +124,14 @@ def run_simulation(env_human, env_id, target_pose_angles, count_target):
 
 def optimizing_function(points, env_human, env_id):
     
-    global best_params, best_costs, fevals, f
+    global best_params, best_costs, fevals, f, dict_file
 
     mid_angle = np.array([-1.28484584e-14,  1.74532925e-01,  1.24455499e-14, -8.98027383e-02, -1.10828408e+00,  
                 6.82478992e-14, -1.11701072e+00, -1.43938821e-14,  7.85398163e-02,  1.74532925e-01])
 
-    weights_opt = np.array([ 1,  1,  0.1 ])
+    weights_opt = np.array([ 0.5,  0.5,  0.1 ])
+    #(f_moment f_angle  f_manipulability)
+
     dist_threshold=0.1
     max_moment = 363.4084744
     max_ang = 16.7190253038
@@ -140,10 +143,6 @@ def optimizing_function(points, env_human, env_id):
     target_position = root_pos + np.array(points)
     #print('Points', points)
 
-    # if np.linalg.norm(target_position)==0:
-    #     continue
-
-    #p.createVisualShape(shapeType=p.GEOM_SPHERE, radius=0.01, rgbaColor=[0,1,1,1], physicsClientId=env_id)
 
     target_pose_angles = env_human.ik(env_human.right_wrist, target_position, None, ik_indices=env_human.right_arm_joints, max_iterations=2000)
     #print('Iteration ',sim_)
@@ -169,7 +168,7 @@ def optimizing_function(points, env_human, env_id):
         #print('------------Reached----------------')
     else:
         det=0.00000000
-        f_manipulability = 20
+        f_manipulability = 50
         #print('Not Reached')
 
     
@@ -178,10 +177,10 @@ def optimizing_function(points, env_human, env_id):
     
     
     f_moment = np.sum(linear_moment**2)
-    f_moment = f_moment/max_moment
+    f_moment = f_moment/(max_moment**2)
 
     f_angle = np.sum( (target_pose_angles-mid_angle)**2 )
-    f_angle = f_angle/max_ang
+    f_angle = f_angle/(max_ang**2)
 
     #manipulability, _ = calculate_human_manipulability(env_human, env_id, target_pose_angles)
     #manipulability = manipulability/max_manipulability
@@ -190,10 +189,6 @@ def optimizing_function(points, env_human, env_id):
 
     f_value = (weights_opt[0]*f_moment + weights_opt[1]*f_angle + weights_opt[2]*f_manipulability)/(weights_opt[0]+weights_opt[1]+weights_opt[2])
     
-
-
-    #print(f_value)
-
     # Keep track of the best 5 param sets
     if len(best_costs) < 5 or f_value < best_costs[-1]:
         # Find location to insert new low cost param set
@@ -204,6 +199,7 @@ def optimizing_function(points, env_human, env_id):
                 break
         best_params.insert(index, points)
         best_costs.insert(index, f_value)
+        dict_file = [{'wrist_pos':[points]},{'f_value':[f_value]}]
         if len(best_costs) > 5:
             best_params.pop(-1)
             best_costs.pop(-1)
@@ -245,12 +241,14 @@ arm_length = np.linalg.norm(wrist_pos-shoulder_pos)-0.1
 sh_pos, sh_orient = env.human.get_pos_orient(env.human.right_shoulder)
 
 #x0 = [ 0.05079058, 0.04465512, 0.08518684, 0.08726646, 0.00902719, -0.01202248,  0.0,  -0.00942944,  -0.3599609,  0.82030475]
-x0 = [-0.2, -0.2, -0.3]
+x0 = [-0.1, -0.1, -0.3]
 
-es = cma.CMAEvolutionStrategy(x0, 0.20)
+
 opts = cma.CMAOptions({'verb_disp': 1, 'popsize': 8})
 opts.set('bounds',[ [-(arm_length-0.1),-arm_length,-(arm_length-0.1) ], [(arm_length-0.1),0,(arm_length-0.1) ] ])
 
+opts.set('tolfun', 6e-2)
+opts['tolx'] = 6e-2
 
 cma_option = {"BoundaryHandler": cma.BoundTransform,
             "bounds": [ [-(arm_length-0.1),-arm_length,-(arm_length-0.1) ], [(arm_length-0.1),0,(arm_length-0.1) ] ],
@@ -258,14 +256,18 @@ cma_option = {"BoundaryHandler": cma.BoundTransform,
 
 opts.update(cma_option)
 
+es = cma.CMAEvolutionStrategy(x0, 0.2)
 logger = cma.CMADataLogger().register(es)
-
 #es.optimize(optimizing_function, args=(env_human, test_set))
 es.optimize(optimizing_function,args=(env.human, env.id), opts=opts, callback=es.logger.plot)
 es.result_pretty()
 cma.plot()
 logger.plot()
 print('FInished')
+
+with open(r'cmaes_handover_store_file.yaml', 'w') as file:
+    documents = yaml.dump(dict_file, file)
+
 
 #{'boundary_handling': 'BoundPenalty','bounds': [ [-(arm_length-0.1),-arm_length,-(arm_length-0.1) ], [(arm_length-0.1),0,(arm_length-0.1) ] ] }
 

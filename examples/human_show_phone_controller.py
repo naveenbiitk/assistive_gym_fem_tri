@@ -337,9 +337,7 @@ def optimizer(env):
     es.result_pretty()
     cma.plot()
     logger.plot()
-    print('FInished')
-
-
+    print('Finished')
 
 
 env_name = "ObjectHandoverStretchHuman-v1"

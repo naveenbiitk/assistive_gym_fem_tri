@@ -224,7 +224,7 @@ heye_pos, heye_orient = p.multiplyTransforms(head_t_pos, head_t_orient, eye_pos,
 
 #points = [-0.1693589450778777, -0.3614343639495855, 0.16958656076588924]
 #points = [ 0.00126, -0.31976, -0.08800]
-points = [0.18, -0.25, 0.1]
+points =  [-0.18504, -0.21509, -0.29003]
 #target_pos = [-0.29404564, -0.46383235 , 0.78296778]
 target_pos = [points[0]+shoulder_pos[0], points[1]+shoulder_pos[1], points[2]+shoulder_pos[2]  ]
 
@@ -261,9 +261,9 @@ while count_<200:
 
     #action = right_arm_angles_start
     #print(env.robot.get_joint_angles(env.robot.left_arm_joint_indices))
-    for key, a in keys_actions.items():
-        if key in keys and keys[key] & p.KEY_IS_DOWN:
-            action_ += a
+    # for key, a in keys_actions.items():
+    #     if key in keys and keys[key] & p.KEY_IS_DOWN:
+    #         action_ += a
             #action = action*100
 
     #wrist_pos,wrist_orient = env.human.get_pos_orient(env.human.right_wrist)        

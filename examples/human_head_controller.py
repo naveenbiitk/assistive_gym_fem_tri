@@ -57,8 +57,6 @@ human_actions = { ord('1'): np.array([ 0.01, 0, 0, 0]), ord('2'): np.array([ -0.
 
 
 
-
-
 shoulder_pos,shoulder_orient = env.human.get_pos_orient(env.human.right_shoulder)
 points = [0.18, -0.25, 0.1]
 target_pos = [points[0]+shoulder_pos[0], points[1]+shoulder_pos[1], points[2]+shoulder_pos[2]  ]

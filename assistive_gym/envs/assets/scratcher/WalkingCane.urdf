@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<robot name="scratcher">
+
+  <link name="tool">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <mass value="0.1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <geometry>
+        <mesh filename="WalkingCane.obj" scale="0.75 0.75 0.75"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <geometry>
+        <mesh filename="WalkingCane.obj" scale="0.75 0.75 0.75"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

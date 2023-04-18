@@ -19,8 +19,10 @@ from scipy.spatial.transform import Rotation as R
 #from bed_pose_optimization_fun import *
 from .naveenb_utils.human_coordinate import *
 from pytorch3d import transforms
+from pathlib import Path
 
 
+# pip install pytorch3d cma numpngw
 
 human_controllable_joint_indices = human.motion_right_arm_joints 
 class HumanRestingEnv(AssistiveEnv):
@@ -29,10 +31,10 @@ class HumanRestingEnv(AssistiveEnv):
         self.use_mesh = use_mesh
         self.sample_pkl = 1
         self.sample_pkl_list = [4,5,13,15,19,21,25,39,41,48,49,56,58,59,63,64,70,73,81,91,92,97]
-        self.f_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_bp_ros_smpl_7.pkl'
+        cur_path = os.path.dirname(__file__)
+        self.f_name  = os.path.normpath(os.path.join(cur_path, '../../examples/optimal_frame_lying/data/smpl_bp_ros_smpl_7.pkl'))      
         self.save_fname = "human_joints_simulation_realtime_1.pkl" 
         self.save_fname_png = "human_joints_simulation_realtime_1.png" 
-        #self.f_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_pkl_5/smpl_smpl_postures11_5.pkl'
         self.count = 0
 
     def set_file_name(self, pkl_file_name):
@@ -42,9 +44,9 @@ class HumanRestingEnv(AssistiveEnv):
         #action = np.zeros([5])
         self.take_step(action, action_multiplier=0.003)
         self.count += 1
-        print('-----------------------step--------------------------', self.count)
-        self.convert_smpl_body_to_gym()
-        if self.count ==30:
+        #print('-----------------------step--------------------------', self.count)
+        #self.convert_smpl_body_to_gym()
+        if self.count ==3000:
             #save the human pose
             self.save_human_model()
 
@@ -169,7 +171,7 @@ class HumanRestingEnv(AssistiveEnv):
         
         # time.sleep(10)
         # # Lock the person in place
-        #self.human.control(self.human.all_joint_indices, self.human.get_joint_angles(), 0.025, 5)
+        self.human.control(self.human.all_joint_indices, self.human.get_joint_angles(), 0.025, 5)
         # self.human.set_mass(self.human.base, mass=10.1)
         # self.human.set_mass(self.human.waist, mass=10.1)
         # self.human.set_mass(self.human.head, mass=10.1)
@@ -249,7 +251,7 @@ class HumanRestingEnv(AssistiveEnv):
         dt = torch.reshape(df, (1, 24, 3))
         db = dt[:,1:22,:] #for real time model
         #dt = torch.reshape(df, (1, 23, 3)) # for simulation model
-        #db = dt[:,:21,:] # for simulation model
+        #db = dt[:,:21,:] # for simulation model offline model check this
         self.m_pose = dt
         orient_tensor = torch.from_numpy(np.array(data1['global_orient']))
         self.orient_body = orient_tensor.numpy()
@@ -321,7 +323,7 @@ class HumanRestingEnv(AssistiveEnv):
 
 #corresponding_smpl_orders = [14, 17, 19, 21, 21, 13, 16, 18, 20, 20, 12, 15, 3, 0, 2, 5, 8, 1, 4, 7]
 
-    def convert_smpl_body_to_gym(self):
+    def convert_smpl_body_to_gym_new_not_working(self):
         smpl_bp_old = self.smpl_body_pose
     
         #R.from_rotvec(pr).as_quat()
@@ -333,7 +335,7 @@ class HumanRestingEnv(AssistiveEnv):
         opts_joints = [0,1,2,3,4,5,6]
         cor_angles = [smpl_bp[13,0],smpl_bp[13,1],smpl_bp[13,2],-smpl_bp[16,0],-smpl_bp[16,1],smpl_bp[16,2],smpl_bp[18,0] ] 
         self.human.set_joint_angles(opts_joints, cor_angles)
-
+        
         #left shoulder 12
         opts_joints = [10,11,12,13,14,15,16]
         cor_angles = [smpl_bp[12,0],smpl_bp[12,1],smpl_bp[12,2],-smpl_bp[15,0],-smpl_bp[15,1],smpl_bp[15,2],smpl_bp[17,0] ] 
@@ -366,118 +368,94 @@ class HumanRestingEnv(AssistiveEnv):
 #ik_angles_body =  p.calculateInverseKinematics(self.body, target_joint, targetPosition=target_pos)
 
 #ref: https://files.is.tue.mpg.de/black/talks/SMPL-made-simple-FAQs.pdf
-    def convert_smpl_body_to_gym_old(self):
+
+     
+    def convert_smpl_body_to_gym(self):
 
         smpl_pose_jt_1 = self.smpl_body_pose  #self.smpl_agym_map(self.smpl_body_pose)
         
-        #print('orient_body', self.orient_body)
+        print('orient_body', self.orient_body)
         #smpl_pose_jt_1 = smpl_pose_jt_1.dot(R.from_euler('x', -90, degrees=True).as_matrix())
-        #smpl_pose_jt_1 = smpl_pose_jt_1.dot(R.from_quat(self.human_orient_offset).as_matrix())
-     
+        smpl_pose_jt_1 = smpl_pose_jt_1.dot(R.from_quat(self.human_orient_offset).as_matrix())
+        #smpl_pose_jt_1 = smpl_pose_jt_1.dot(R.from_euler('y', 180, degrees=True).as_matrix())
+        #smpl_pose_jt_1 = smpl_pose_jt_1.dot(R.from_euler('z', 180, degrees=True).as_matrix())
+        
         smpl_bp = smpl_pose_jt_1
-        
-        ang = self.orient_body[2]
-        #ang = min(self.orient_body[2], np.pi/3)
-        #ang = max(-np.pi/3, ang)
+        # joints_1 = smpl_pose_jt_1.dot(R.from_euler('x', -90, degrees=True).as_matrix())
+        # smpl_pose_jt_2 = joints_1.dot(R.from_quat(self.human_orient_offset).as_matrix())
+        # smpl_pose_jt_2 = smpl_pose_jt_2.dot(R.from_euler('y', 180, degrees=True).as_matrix())
+        # smpl_pose_jt = smpl_pose_jt_2.dot(R.from_euler('z', 180, degrees=True).as_matrix())
 
-        body_pose_reshape = self.m_pose[:,1:23,:] 
-        #print('body_pose_reshape----', body_pose_reshape.shape)
-        body_pose_sja = aa_to_sja(body_pose_reshape.float())
-        #print('body_pose_sja----', body_pose_sja)
-        human_joint_angle_list = coord_to_rot(self.henry_joints )
         
 
-        #self.human.set_base_pos_orient([0, 0.25, 1.12995], [-np.pi/2, human_joint_angle_list[0][0]+1.57, 0 ])
-        #self.human.set_base_pos_orient([0, 0.25, 1.12995], [-np.pi/2, ang ,0])
-        #self.human.set_base_pos_orient([0, 0.02, 1.199195], [-np.pi/2.0, ang, 0])
-        
-        for i, key in enumerate(corresponding_smpl_orders):
-            pose = np.asarray(poses[key*3:(key*3+3)])
-            pr = np.array([pose[0],pose[1],pose[2]])
-            print('---',pr)
-            p.resetJointStateMultiDof(self.human, i, targetValue=R.from_rotvec(pr).as_quat())
+        self.human.set_base_pos_orient([0, 0.0, 0.80], [-np.pi/2, self.orient_body[2],0])
 
+        # opts_joints = [ self.human.j_head_x, self.human.j_head_y, self.human.j_head_z,self.human.j_neck,
+        #                 self.human.j_upper_chest_x, self.human.j_upper_chest_y, self.human.j_upper_chest_z,
+        #                 self.human.j_chest_x, self.human.j_chest_y, self.human.j_chest_z,
+        #                 self.human.j_waist_x, self.human.j_waist_y, self.human.j_waist_z ]
 
-        opts_joints = [ self.human.j_head_x, self.human.j_head_y, self.human.j_head_z,self.human.j_neck,]
-        cor_angles = [  smpl_bp[14,0],smpl_bp[14,1],smpl_bp[14,2],smpl_bp[11,0]]
-        self.human.set_joint_angles(opts_joints, cor_angles)
-        
-        
-        opts_joints = [ self.human.j_waist_x, self.human.j_waist_y, self.human.j_waist_z ]
-        cor_angles = [  smpl_bp[0,1],smpl_bp[0,2],smpl_bp[0,0] ]
-        #cor_angles = [ 10*3.14/180,0*3.14/180,0*3.14/180 ]
-        self.human.set_joint_angles(opts_joints, cor_angles)
+        # cor_angles = [  smpl_bp[14,0],smpl_bp[14,1],smpl_bp[14,2],smpl_bp[11,0],
+        #                 smpl_bp[8,0],smpl_bp[8,1],smpl_bp[8,2],
+        #                 smpl_bp[5,0],smpl_bp[5,1],smpl_bp[5,2],
+        #                 smpl_bp[2,0],smpl_bp[2,1],smpl_bp[2,2] ]
+
+        # self.human.set_joint_angles(opts_joints, cor_angles)
         #print('stomach cor_angles', np.array(cor_angles)*180/3.14)
+        
 
         opts_joints = [ self.human.j_left_hip_x, self.human.j_left_hip_y, self.human.j_left_hip_z, self.human.j_left_knee ,
                         self.human.j_left_ankle_x, self.human.j_left_ankle_y, self.human.j_left_ankle_z ]
 
-        #cor_angles = [smpl_bp[0,0],smpl_bp[0,2],smpl_bp[0,1],smpl_bp[3,0],
-        #              smpl_bp[6,0],smpl_bp[6,2],smpl_bp[6,1]]
-        
-        cor_angles = [body_pose_sja[0,0,0],body_pose_sja[0,0,2],body_pose_sja[0,0,1],body_pose_sja[0,3,0],
-                      body_pose_sja[0,6,0],body_pose_sja[0,6,2],body_pose_sja[0,6,1]]
+        cor_angles = [smpl_bp[0,0],smpl_bp[0,1],smpl_bp[0,2],smpl_bp[3,0],
+                      smpl_bp[6,0],smpl_bp[6,1],smpl_bp[6,2]]
 
         self.human.set_joint_angles(opts_joints, cor_angles)
-        print('left leg cor_angles', np.array(cor_angles)*180/3.14)
+        #self.human.setup_joints(joints_positions, use_static_joints=False, reactive_force=4.8)
+        #print('right leg cor_angles', np.array(cor_angles)*180/3.14)
 
         opts_joints = [ self.human.j_right_hip_x, self.human.j_right_hip_y, self.human.j_right_hip_z, self.human.j_right_knee, 
                         self.human.j_right_ankle_x, self.human.j_right_ankle_y, self.human.j_right_ankle_z]
 
-        #cor_angles = [smpl_bp[1,0],smpl_bp[1,2],smpl_bp[1,1],smpl_bp[4,0],
-        #              smpl_bp[7,0],smpl_bp[7,2],smpl_bp[7,1]]
-        cor_angles = [body_pose_sja[0,1,0],body_pose_sja[0,1,1],body_pose_sja[0,1,2],body_pose_sja[0,4,0],
-                      body_pose_sja[0,7,0],body_pose_sja[0,7,1],body_pose_sja[0,7,2]]
-        
+        cor_angles = [smpl_bp[1,0],smpl_bp[1,1],smpl_bp[1,2],smpl_bp[4,0],
+                      smpl_bp[7,0],smpl_bp[7,1],smpl_bp[7,2]]
+
         self.human.set_joint_angles(opts_joints, cor_angles)
-        print('right leg cor_angles', np.array(cor_angles)*180/3.14)
+        #self.human.setup_joints(joints_positions, use_static_joints=False, reactive_force=4.8)
+        #print('left leg cor_angles', np.array(cor_angles)*180/3.14)
 
-        #elbow forward -ve, backward +ve
-        # z is along hand axial
-        # y is forward-ve or backward+ve
-        # x is right(in the body)+ve or left(out of body)-ve 
-        opts_joints = [self.human.j_right_shoulder_x, self.human.j_right_shoulder_y, self.human.j_right_shoulder_z,self.human.j_right_elbow ]
-        #cor_angles_right = [ -human_joint_angle_list[6][0], -human_joint_angle_list[6][2], -human_joint_angle_list[6][1],-human_joint_angle_list[7][0] ]
-        cor_angles_right = [-body_pose_sja[0,16,1], -body_pose_sja[0,16,0],body_pose_sja[0,16,2], -body_pose_sja[0,18,1]]
-        self.human.set_joint_angles(opts_joints, np.array(cor_angles_right) )
-        print('right hand cor_angles', np.array(cor_angles_right)*180/3.14)
-
-        #bad [-49.3764    83.948235 -41.783314  51.77844 ]   [-49.3764   -83.948235 -41.783314 -51.77844 ]  [-49.3764   -83.948235 -41.783314 -51.77844 ]
-        #good [-52.53192749 -74.74141252 -31.53242049 -56.82334869] [-52.53192749 -74.74141252 -31.53242049 -56.82334869]
-
-        opts_joints = [self.human.j_left_shoulder_x, self.human.j_left_shoulder_y, self.human.j_left_shoulder_z,self.human.j_left_elbow ]   #x is rotation of rod along axis #y is back/front  #z is along #
-        #cor_angles_left = [ -(3.14+human_joint_angle_list[11][0]), -(3.14+human_joint_angle_list[11][2]),-1*(3.14-human_joint_angle_list[11][1]),-human_joint_angle_list[12][0] ]
-        #cor_angles_left = [ -human_joint_angle_list[11][0],-(human_joint_angle_list[11][2]),-(human_joint_angle_list[11][1]),-human_joint_angle_list[12][0] ]
-        cor_angles_left = [body_pose_sja[0,15,1],-body_pose_sja[0,15,0],-body_pose_sja[0,15,2], body_pose_sja[0,17,1]]
-        # x is right or left
-        # y is axial rotation
-        # z is forward backward
-        #cor_angles_right = [ -1.5,0,0, 0 ]
-        self.human.set_joint_angles(opts_joints, np.array(cor_angles_left))
-        print('left hand cor_angles', np.array(cor_angles_left)*180/3.14)
-        #good [ -22.86224382  -53.06863916   35.55169975 -107.56652451] [-43.996185 -54.394592  30.636816 -75.77856 ]
-        #bad [-43.996185  54.394592 -30.636816  75.77856 ]
-
-        #self.human.set_joint_angles( [self.human.j_left_elbow ], [ -1.91])
+        opts_joints = [ self.human.j_left_pecs_x, self.human.j_left_pecs_y, self.human.j_left_pecs_z ,
+                        self.human.j_left_shoulder_x, self.human.j_left_shoulder_y, self.human.j_left_shoulder_z ,
+                        self.human.j_left_elbow, self.human.j_left_forearm ]
         
-        #print('----joint-------list-2-----',cor_angles_left)
+
+        cor_angles_left = [  -smpl_bp[12,2]-1.57,smpl_bp[12,1],smpl_bp[12,0],
+                             ((-smpl_bp[15,2])-1.57),smpl_bp[15,1],-(smpl_bp[15,0]),
+                             smpl_bp[17,2],smpl_bp[19,1]]
+
+        #cor_angles_left = [0,0,0,-3.14,0,0,0,0]
+        #shoulder x didn't make any difference
+
+        self.human.set_joint_angles(opts_joints, cor_angles_left)
+        #self.human.setup_joints(joints_positions, use_static_joints=False, reactive_force=4.8)
+        #print('left hand cor_angles', np.array(cor_angles_left)*180/3.14)
+
+        opts_joints = [ self.human.j_right_pecs_x, self.human.j_right_pecs_y, self.human.j_right_pecs_z ,
+                        self.human.j_right_shoulder_x, self.human.j_right_shoulder_y, self.human.j_right_shoulder_z,
+                        self.human.j_right_elbow, self.human.j_right_forearm]
         
-        #opts_joints = [ self.human.j_right_pecs_x, self.human.j_right_pecs_y, self.human.j_right_pecs_z ]
-        #cor_angles_right = [smpl_bp[13,2],smpl_bp[13,1],smpl_bp[13,0]]
-        #self.human.set_joint_angles(opts_joints, cor_angles_right)
 
-        #opts_joints = [ self.human.j_left_pecs_x, self.human.j_left_pecs_y, self.human.j_left_pecs_z ]
-        #cor_angles_right = [-smpl_bp[12,2],smpl_bp[12,1],smpl_bp[12,0]]
-        #self.human.set_joint_angles(opts_joints, cor_angles_right)
-
-        #print('----joint---posi----list-2-----',human_joint_angle_list[6][0]*180/3.14,human_joint_angle_list[6][2]*180/3.14, human_joint_angle_list[6][1]*180/3.14,-human_joint_angle_list[7][0]*180/3.14 )       #correct
-          #   smpl_bp[15,0],smpl_bp[15,2],smpl_bp[15,1],+smpl_bp[17,1]
-        #print('----joint-------list-1-----',human_joint_angle_list[11][0]*180/3.14,human_joint_angle_list[11][2]*180/3.14, human_joint_angle_list[11][1]*180/3.14)    #thappu
         
-        # human_joint_angle_list = [0root, 1chest, 2neck, 3r_hip, 4r_knee, 5r_ankle, 6r_should, 7r_elbow, 8l_hip, 9l_knee, 10l_ankle, 11l_should, 12l_elbow]
-        #self.human.set_base_pos_orient([0, 0.02, 1.199195], [-np.pi/2.0, ang, 0])
+        ck = smpl_bp[16,0] if smpl_bp[16,0]<0 else smpl_bp[16,0]+1.57
+
+        cor_angles_right = [smpl_bp[13,2],smpl_bp[13,1],smpl_bp[13,0],
+                            1.57-smpl_bp[16,2],smpl_bp[16,1],ck,
+                            -smpl_bp[18,2],smpl_bp[20,1]]
 
 
+        self.human.set_joint_angles(opts_joints, cor_angles_right)
+        #self.human.setup_joints(joints_positions, use_static_joints=False, reactive_force=4.8)
+        print('right hand cor_angles', np.array(cor_angles_right)*180/3.14) 
 
     def get_human_joint_position(self):
 

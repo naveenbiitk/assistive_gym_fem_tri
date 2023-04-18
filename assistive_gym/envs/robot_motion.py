@@ -16,11 +16,11 @@ from .util import reward_tool_direction
 #from .util import generate_line_hand
 from scipy.spatial.transform import Rotation
 # from rlhf import RLHF_Model
-from assistive_gym.envs.robot_rlhf.rlhf import RLHF_Model
-# from loader import RLHF_Dataset
-from assistive_gym.envs.robot_rlhf.loader import RLHF_Dataset
-from assistive_gym.envs.robot_rlhf.run_model import *
-from assistive_gym.envs.robot_rlhf.rlhf_utils import *
+# from assistive_gym.envs.robot_rlhf.rlhf import RLHF_Model
+# # from loader import RLHF_Dataset
+# from assistive_gym.envs.robot_rlhf.loader import RLHF_Dataset
+# from assistive_gym.envs.robot_rlhf.run_model import *
+# from assistive_gym.envs.robot_rlhf.rlhf_utils import *
 import torch
 
 class RobotMotionEnv(AssistiveEnv):
@@ -42,7 +42,7 @@ class RobotMotionEnv(AssistiveEnv):
         if self.rlhf:
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             self.rlhf_model = RLHF_Model(input_size=23*60, output_size=1).to(self.device)
-            self.rlhf_model.load_state_dict(torch.load('/nethome/nnagarathinam6/hrl_git/assistive_gym_fem_tri/assistive_gym/envs/robot_rlhf/checkpoints/model_4_1k_best.pt', map_location=torch.device('cpu')))
+            self.rlhf_model.load_state_dict(torch.load('envs/robot_rlhf/checkpoints/model_4_1k_best.pt', map_location=torch.device('cpu')))
                 
 
     def robot_reward(self):
@@ -113,7 +113,7 @@ class RobotMotionEnv(AssistiveEnv):
         # minimize distance between cup and target
         reward += -BETA * np.linalg.norm(object_bottom_position - target_position)
 
-        print('object_target_dist: ', np.linalg.norm(object_bottom_position - target_position) )
+        #print('object_target_dist: ', np.linalg.norm(object_bottom_position - target_position) )
         
 
         
@@ -142,7 +142,7 @@ class RobotMotionEnv(AssistiveEnv):
         # elif is_failure:
         #     reward += failure_penalty
 
-        print('current reward', reward)
+        #print('current reward', reward)
         return reward
 
             
@@ -357,7 +357,6 @@ class RobotMotionEnv(AssistiveEnv):
 
         #depth = depth[50:178, 73:127]
 
-        #filename='/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/'
         #outfile = filename + "after_depth" + str(1) + ".npy"
         #np.save(outfile, depth)
         

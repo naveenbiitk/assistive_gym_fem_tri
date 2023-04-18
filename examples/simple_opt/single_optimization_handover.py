@@ -144,7 +144,7 @@ def iterating_across_poses(point, env, frame_i):
     total_index=625
     score_array = np.zeros([total_index])
 
-    dir_base = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/'
+    dir_base = 'examples/optimal_frame_lying/'
     dir_files = os.listdir(dir_base+'data/')
 
     observation = env.reset()
@@ -342,7 +342,7 @@ def pose_body_frames(env, frame_i):
 
 
 def calc_eror():
-    bp_body = pickle.load(open('/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/smpl_opt/result_realtime_handover.pkl'))
+    bp_body = pickle.load(open('examples/smpl_opt/result_realtime_handover.pkl'))
     # will figure out how to get the correct mapping points from the Henry smpl model
 
 with open('file_modified_handover_40_second_cma2.pkl', 'rb') as f:

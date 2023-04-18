@@ -95,10 +95,10 @@ def viewer(env_name):
     sample_i=1
     frames = []
     
-    pkl_file_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_pkl_35/smpl_smpl_postures74_35.pkl'
+    pkl_file_name = 'examples/optimal_frame_lying/data/smpl_pkl_35/smpl_smpl_postures74_35.pkl'
     env.set_file_name(pkl_file_name)
     
-    dir_base = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/'
+    dir_base = 'examples/optimal_frame_lying/'
     dir_files = os.listdir(dir_base+'data/')
 
     dir_file_name = dir_base + 'data/' + dir_files[3]

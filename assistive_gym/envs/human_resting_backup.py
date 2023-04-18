@@ -25,7 +25,7 @@ class HumanRestingEnv(AssistiveEnv):
         self.use_mesh = use_mesh
         self.sample_pkl = 1
         self.sample_pkl_list = [4,5,13,15,19,21,25,39,41,48,49,56,58,59,63,64,70,73,81,91,92,97]
-        self.f_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_pkl_5/smpl_smpl_postures16_5.pkl'
+        self.f_name = 'examples/optimal_frame_lying/data/smpl_pkl_5/smpl_smpl_postures16_5.pkl'
 
     def set_file_name(self, pkl_file_name):
         self.f_name = pkl_file_name

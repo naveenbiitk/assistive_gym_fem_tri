@@ -398,7 +398,6 @@ class ShowPhoneEnv(AssistiveEnv):
 
         depth = depth[50:178, 73:127]
 
-        #filename='/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/'
         #outfile = filename + "after_depth" + str(1) + ".npy"
         #np.save(outfile, depth)
         

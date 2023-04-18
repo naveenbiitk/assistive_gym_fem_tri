@@ -49,6 +49,7 @@ pip3 install --upgrade pip
 git clone https://github.com/Healthcare-Robotics/assistive-gym.git
 cd assistive-gym
 pip3 install -e .
+pip3 install pytorch3d cma numpngw
 ```
 
 ## Getting Started

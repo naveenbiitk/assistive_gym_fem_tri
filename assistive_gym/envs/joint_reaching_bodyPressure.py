@@ -11,11 +11,11 @@ from .agents.furniture import Furniture
 
 
 import sys
-sys.path.insert(0,'/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/BodyPressureTRI/networks/')
+sys.path.insert(0,'Documents/joint_reaching_evaluation/BodyPressureTRI/networks/')
 print(sys.path)
 from evaluate_depthREALTIME import Viz3DPose
 
-sys.path.insert(0,'/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/BodyPressureTRI/lib_py/')
+sys.path.insert(0,'Documents/joint_reaching_evaluation/BodyPressureTRI/lib_py/')
 from optparse_lib import get_depthnet_options
 
 
@@ -312,7 +312,7 @@ class JointReachingEnv(AssistiveEnv):
 
         depth = depth[50:178, 73:127]
 
-        #filename='/nethome/nnagarathinam6/Documents/joint_reaching_evaluation/'
+
         #outfile = filename + "after_depth" + str(1) + ".npy"
         #np.save(outfile, depth)
         

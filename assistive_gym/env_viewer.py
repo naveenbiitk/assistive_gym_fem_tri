@@ -85,8 +85,8 @@ def viewer(env_name):
         #     print('Observation size:', np.shape(observation), 'Action size:', np.shape(action))
 
         while not done:
-            #action = sample_action_human(env, coop)
-            action = sample_action(env, coop)
+            action = sample_action_human(env, coop)
+            #action = sample_action(env, coop)
             observation, reward, done, info = env.step(action)
             print('--action shape',np.shape(action))
             if coop:

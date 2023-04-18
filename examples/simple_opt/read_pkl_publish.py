@@ -60,7 +60,7 @@ class PosePublisher:
         self.frame_pose.orientation.z = self.frame_orient[2]
         self.frame_pose.orientation.w = self.frame_orient[2]
 
-        self.file_2_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_bp_ros_smpl.pkl'
+        self.file_2_name = 'examples/optimal_frame_lying/data/smpl_bp_ros_smpl.pkl'
         with open(self.file_2_name, 'rb') as f:
             file_data_2 = pickle.load(f)
         

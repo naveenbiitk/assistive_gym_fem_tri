@@ -12,7 +12,7 @@ class Agent:
         self.ik_lower_limits = None
         self.ik_upper_limits = None
         self.ik_joint_names = None
-        #self.logger = Logger('/nethome/nnagarathinam6/wut.txt')
+        #self.logger = Logger('wut.txt')
 
 
     def init_env(self, body, env, indices=None):

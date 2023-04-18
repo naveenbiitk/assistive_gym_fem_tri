@@ -20,7 +20,7 @@ human_controllable_joint_indices = human.motion_right_arm_joints  #human.right_a
 class HumanLyingEnv(AssistiveEnv):
     def __init__(self):
         super(HumanLyingEnv, self).__init__(robot=None, human=Human(human_controllable_joint_indices, controllable=True), task='human_lying', obs_robot_len= (0), obs_human_len=(16))
-        self.f_name = '/nethome/nnagarathinam6/hrl_git/assistive_gym_fem_tri/examples/optimal_frame_lying/data/smpl_pkl_1/smpl_smpl_postures22_1.pkl'
+        self.f_name = 'examples/optimal_frame_lying/data/smpl_pkl_1/smpl_smpl_postures22_1.pkl'
         self.sample_pkl = 1
 
     def step(self, action):
@@ -212,7 +212,7 @@ class HumanLyingEnv(AssistiveEnv):
 
     def load_smpl_model(self):
         
-        directory='/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/assistive_gym/envs/assets'
+        directory='assistive_gym/envs/assets'
         model_folder = os.path.join(directory, 'smpl_models')
         model = smplx.create(model_folder, model_type='smpl', gender=self.human.gender)
 

@@ -128,15 +128,18 @@ class HumanMesh(Agent):
         # Generate human mesh with correct height scaling
         # height_scale = height/out_mesh.extents[-1] if height is not None else 1.0
         # print('Scale:', height_scale, '=', height, '/', out_mesh.extents[-1])
-        shape_f_name = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/data/smpl_pkl_1/smpl_smpl_postures14_1.pkl'
+        #shape_f_name = 'examples/optimal_frame_lying/data/smpl_pkl_1/smpl_smpl_postures14_1.pkl'
+        # cur_path = os.path.dirname(__file__)
+        # shape_f_name  = os.path.normpath(os.path.join(cur_path, '../../../examples/optimal_frame_lying/data/smpl_pkl_1/smpl_smpl_postures14_1.pkl'))      
 
-        with open(shape_f_name, 'rb') as handle:
-            data1 = pickle.load(handle)
+        # with open(shape_f_name, 'rb') as handle:
+        #     data1 = pickle.load(handle)
 
-        df = torch.Tensor(data1['body_pose'])
-        dt = torch.reshape(df, (1, 23, 3))
-        db = dt[:,:21,:]
-        db[0,0,0]=-1.57
+
+        # df = torch.Tensor(data1['body_pose'])
+        # dt = torch.reshape(df, (1, 23, 3))
+        # db = dt[:,:21,:]
+        # db[0,0,0]=-1.57
         body_manquin = np.array([1.66853392 , 0.13742359,  0.26680583  ,0.09574525 , 0.10062152,  0.01848636,  0.02756238 ,-0.09812661  ,0.1446684  ,-0.01433858])
         betas = torch.Tensor([body_manquin])
         #output = model(betas=torch.Tensor(data1['betas']), body_pose=db, return_verts=True)

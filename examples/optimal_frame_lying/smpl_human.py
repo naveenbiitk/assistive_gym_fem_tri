@@ -19,7 +19,7 @@ self.henry_joints = self.pose_reindex()
 
 	def load_smpl_model(self):
         
-        directory='/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/assistive_gym/envs/assets'
+        directory='/envs/assets'
         model_folder = os.path.join(directory, 'smpl_models')
         model = smplx.create(model_folder, model_type='smpl', gender=self.human.gender)
 

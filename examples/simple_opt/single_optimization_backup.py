@@ -140,7 +140,7 @@ def iterating_across_poses(point, env, frame_i):
     total_index=625
     score_array = np.zeros([total_index])
 
-    dir_base = '/nethome/nnagarathinam6/hrl_git/assistive-gym-fem/examples/optimal_frame_lying/'
+    dir_base = 'examples/optimal_frame_lying/'
     dir_files = os.listdir(dir_base+'data/')
 
     observation = env.reset()

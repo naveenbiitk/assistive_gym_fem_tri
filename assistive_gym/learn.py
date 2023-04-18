@@ -15,8 +15,7 @@ import time
 
 from ray.rllib.agents.callbacks import DefaultCallbacks
 import torch
-from assistive_gym.envs.robot_rlhf.run_model import *
-from assistive_gym.envs.robot_rlhf.rlhf_utils import *
+
 
 def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
     num_processes = multiprocessing.cpu_count()
@@ -154,7 +153,7 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
         # Number of steps to read before learning starts.
         config["learning_starts"] = 0
         
-    config['num_workers'] = num_processes 
+    config['num_workers'] = num_processes//2 
     # config['num_workers'] = 1
     config['num_cpus_per_worker'] = 0
     config['seed'] = seed
@@ -168,66 +167,6 @@ def setup_config(env, algo, coop=False, seed=0, extra_configs={}):
         config['env_config'] = {'num_agents': 2}
     return {**config, **extra_configs}
 
-# class CustomRewardCallbackOld(DefaultCallbacks):
-#     # def on_episode_end(self, worker, base_env, policies, episode, **kwargs):
-#     def on_postprocess_trajectory(self, worker, episode, agent_id, policy_id, policies, postprocessed_batch, original_batches, *args, **kwargs):
-#         # Access the original episode rewards
-        
-#         # original_rewards = episode._agent_reward_history
-#         # obs = episode._agent_to_last_obs
-#         # action = episode._agent_to_last_action
-
-#         # Access observations
-#         observations = postprocessed_batch['obs']
-#         # Access actions
-#         actions = postprocessed_batch['actions']
-        
-#         # You can now modify the rewards, observations, or actions as needed
-#         # For example, you can print the observations and actions for debugging
-#         print("Observations:", observations)
-#         print("Actions:", actions)
-
-#         # Modify the rewards for the entire episode
-#         # modified_rewards = some_function_to_modify_rewards(original_rewards)
-#         # modified_rewards = original_rewards
-        
-#         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        
-#         model = RLHF_Model(input_size=25*120, output_size=1).to(device)
-#         model.load_state_dict(torch.load('/nethome/nnagarathinam6/hrl_git/assistive_gym_fem_tri/assistive_gym/envs/robot_rlhf/checkpoints/model_0_best_100_examples.pt', map_location=torch.device('cpu')))
-        
-#         # trajectory = np.concatenate((observations, actions), axis=1)
-#         trajectory = np.zeros((120, 25))
-#         trajectory = torch.from_numpy(trajectory).unsqueeze(0)
-#         # trajectory = torch.from_numpy(observations).unsqueeze(0)
-        
-#         # modified_rewards = [run_model(model, trajectory, device)] * 120
-#         modified_rewards = [0] * 120
-
-#         # Update the episode rewards with the modified rewards
-#         episode._agent_reward_history[agent_id] = modified_rewards
-
-class CustomRewardCallback(DefaultCallbacks):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.episode_rewards = []
-
-    def on_episode_start(self, *args, **kwargs):
-        self.episode_rewards = []
-
-    def on_episode_step(self, *args, **kwargs):
-        episode = kwargs["episode"]
-        # reward = episode.last_result.get("reward", None)
-        # if reward is not None:
-        #     self.episode_rewards.append(reward)
-        reward = 1
-
-    def on_episode_end(self, *args, **kwargs):
-        episode = kwargs["episode"]
-        # Modify the rewards here, e.g., double the rewards
-        # modified_rewards = [reward * 2 for reward in self.episode_rewards]
-        modified_rewards = [0] * 120
-        episode.batch_builder["rewards"][-len(modified_rewards):] = modified_rewards # TODO: find the correct way to access rewards
 
 def load_policy(env, algo, env_name, policy_path=None, coop=False, seed=0, extra_configs={}):
     if algo == 'ppo':
@@ -374,21 +313,24 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
             env.setup_camera(camera_eye=[0.5, -0.75, 1.5], camera_target=[-0.2, 0, 0.75], fov=60, camera_width=1920//4, camera_height=1080//4)
     test_agent, _ = load_policy(env, algo, env_name, policy_path, coop, seed, extra_configs)
 
-    if not os.path.exists('video_results'):
-        os.makedirs('video_results')
+    if not os.path.exists('video_results_1'):
+        os.makedirs('video_results_1')
+
+    if not os.path.exists('trajectory_1'):
+        os.makedirs('trajectory_1')
 
     env_width = 1280 // 4
     env_height = 1000 // 4
 
-    # if not colab:
-    #     env.render()
+    if not colab:
+        env.render()
     # robot_action_array = []
     count=0
     frames = []
     for episode in range(n_episodes):
         obs = env.reset()
-        filename_vid='video_results/'+env_name+'_test_'+str(episode)+'.mp4'
-        filename_npz='trajectory/'+env_name+'_test_'+str(episode)+'.npz'
+        filename_vid='video_results_1/'+env_name+'_test_'+str(episode)+'.mp4'
+        filename_npz='trajectory_1/'+env_name+'_test_'+str(episode)+'.npz'
         vid = imageio_ffmpeg.write_frames(filename_vid, (env_width, env_height), fps=30)
         vid.send(None) # seed the video writer with a blank frame
         action_list = []
@@ -397,7 +339,7 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
         done = False
         while not done:
             count =count +1
-            # env.render()
+            env.render()
             if coop:
                 # Compute the next action for the robot/human using the trained policies
                 print('obs',obs['human'],obs['robot'])
@@ -424,6 +366,11 @@ def render_policy(env, env_name, algo, policy_path, coop=False, colab=False, see
                 img_d,depth = env.get_camera_image_depth()
                 img = img_d[154:405,:,0:3]   #img = img_d[620:1620,:,0:3]     # 1280//4, camera_height=1620
                 img_resize = cv2.resize(img, (env_width, env_height)  , interpolation = cv2.INTER_AREA)
+                
+                #print('Image shape_d',img_d.shape)
+                #print('Image shape',img.shape)
+                #print('Image shape_resize',img_resize.shape)
+
                 vid.send(np.ascontiguousarray(img_resize))
                 #cv2.imshow('img', img)
             if colab:

@@ -49,7 +49,9 @@ pip3 install --upgrade pip
 git clone https://github.com/Healthcare-Robotics/assistive-gym.git
 cd assistive-gym
 pip3 install -e .
-pip3 install pytorch3d cma numpngw
+pip3 install opencv-python
+pip3 install pytorch3d cma numpngw imageio_ffmpeg pyquaternion chumpy cmaes==0.8.2
+#make sure smpl and smpl-x models are present in env/assets/smpl_models
 ```
 
 ## Getting Started

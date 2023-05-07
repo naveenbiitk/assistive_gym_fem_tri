@@ -88,7 +88,7 @@ def viewer(env_name):
             action = sample_action_human(env, coop)
             #action = sample_action(env, coop)
             observation, reward, done, info = env.step(action)
-            print('--action shape',np.shape(action))
+            # print('--action shape',np.shape(action))
             if coop:
                 #print(done)
                 done = 0

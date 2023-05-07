@@ -263,13 +263,10 @@ class HumanCreation:
         linkInertialFrameOrientations.extend([[0, 0, 0, 1]]*7)
         linkParentIndices.extend([3, 11, 12, 13, 14, 15, 16])
         linkJointTypes.extend([p.JOINT_REVOLUTE]*7)
-        linkJointAxis.extend([ [1, 0, 0], [0, 1, 0],[0, 0, 1], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 1, 0]])
-        linkLowerLimits.extend(np.array([ np.deg2rad(-188), np.deg2rad(-15), np.deg2rad(-90), np.deg2rad(-128), np.deg2rad(-90), np.deg2rad(-81), np.deg2rad(-27)])*limit_scale)
-        linkUpperLimits.extend(np.array([ np.deg2rad(61), np.deg2rad(198), np.deg2rad(90), np.deg2rad(120), np.deg2rad(90), np.deg2rad(90), np.deg2rad(47)])*limit_scale)
+        linkJointAxis.extend([[0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 1, 0]])
+        linkLowerLimits.extend(np.array([np.deg2rad(5), np.deg2rad(-188), np.deg2rad(-90), np.deg2rad(-128), np.deg2rad(-90), np.deg2rad(-81), np.deg2rad(-27)])*limit_scale)
+        linkUpperLimits.extend(np.array([np.deg2rad(198), np.deg2rad(61), np.deg2rad(90), np.deg2rad(0), np.deg2rad(90), np.deg2rad(90), np.deg2rad(47)])*limit_scale)
 
-        # z is along hand axial
-        # y is forward-ve or backward+ve
-        # x is right(in the body)+ve or left(out of body)-ve 
         # NOTE: Left arm
         linkMasses.extend(m*np.array([0, 0, 0.033, 0, 0.019, 0, 0.0065]))
         if not self.cloth:
@@ -284,9 +281,9 @@ class HumanCreation:
         linkInertialFrameOrientations.extend([[0, 0, 0, 1]]*7)
         linkParentIndices.extend([6, 18, 19, 20, 21, 22, 23])
         linkJointTypes.extend([p.JOINT_REVOLUTE]*7)
-        linkJointAxis.extend([ [1, 0, 0],[0, 1, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 1, 0]])
-        linkLowerLimits.extend(np.array([ np.deg2rad(-188),np.deg2rad(-198), np.deg2rad(-90), np.deg2rad(-128), np.deg2rad(-90), np.deg2rad(-81), np.deg2rad(-47)])*limit_scale)
-        linkUpperLimits.extend(np.array([np.deg2rad(61),np.deg2rad(15),  np.deg2rad(90), np.deg2rad(120), np.deg2rad(90), np.deg2rad(90), np.deg2rad(27)])*limit_scale)
+        linkJointAxis.extend([[0, 1, 0], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1], [1, 0, 0], [0, 1, 0]])
+        linkLowerLimits.extend(np.array([np.deg2rad(-198), np.deg2rad(-188), np.deg2rad(-90), np.deg2rad(-128), np.deg2rad(-90), np.deg2rad(-81), np.deg2rad(-47)])*limit_scale)
+        linkUpperLimits.extend(np.array([np.deg2rad(-5), np.deg2rad(61), np.deg2rad(90), np.deg2rad(0), np.deg2rad(90), np.deg2rad(90), np.deg2rad(27)])*limit_scale)
 
         # NOTE: Waist and hips
         linkMasses.extend(m*np.array([0, 0, 0.13, 0.14]))

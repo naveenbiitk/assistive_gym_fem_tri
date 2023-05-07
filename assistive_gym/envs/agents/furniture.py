@@ -15,7 +15,7 @@ class Furniture(Agent):
                 left = True
             furniture = p.loadURDF(os.path.join(directory, furniture_type, 'wheelchair.urdf' if not wheelchair_mounted else ('wheelchair_jaco.urdf' if not left else 'wheelchair_jaco_left.urdf')), basePosition=[0, 0, 0.06], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
         elif furniture_type == 'bed':
-            furniture = p.loadURDF(os.path.join(directory, 'bed', 'bed.urdf'), basePosition=[-0.1, 0, 0], baseOrientation=[0, 0, 0, 1], physicsClientId=id)
+            furniture = p.loadURDF(os.path.join(directory, 'bed', 'bed.urdf'), basePosition=[-0.1, 0, 0], baseOrientation=[0, 0, 0, 1],flags=p.URDF_USE_SELF_COLLISION,  physicsClientId=id)
 
             # mesh_scale = [1.1]*3
             # bed_visual = p.createVisualShape(shapeType=p.GEOM_MESH, fileName=os.path.join(self.directory, 'bed', 'bed_single_reduced.obj'), rgbaColor=[1, 1, 1, 1], specularColor=[0.2, 0.2, 0.2], meshScale=mesh_scale, physicsClientId=self.id)

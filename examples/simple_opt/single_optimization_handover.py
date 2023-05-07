@@ -66,20 +66,21 @@ def position_human_arm(env, target_position, attempts):
 
     best_sol = None
     best_joint_positions = None
-
+    attempts=20
     while iteration < attempts:
         iteration += 1
-        target_joint_angles_h = env.human.ik(env.human.right_wrist, target_position, None, ik_indices=env.human.right_arm_joints, max_iterations=2000)
+        target_joint_angles_h = env.human.ik(env.human.right_wrist, target_position, None, ik_indices=env.human.right_arm_joints, max_iterations=10)
 
         env.human.set_joint_angles(env.human.right_arm_joints, target_joint_angles_h)
-        
+        #p.stepSimulation(physicsClientId=env.id)  #without this the joints are moving but the human is not on bed on air optimization seems wrong
         f_sol = calculate_obj_ik(env, target_joint_angles_h, target_position)
-        p.stepSimulation(physicsClientId=env.id)
+       
         #print('f_sol----',f_sol)
         if best_sol is None or f_sol < best_sol:
             best_sol = f_sol
             best_joint_positions = target_joint_angles_h
-        p.stepSimulation(physicsClientId=env.id)
+        #randomize the joint angles
+        #
     #print('Best sol', best_sol)
     return best_joint_positions, best_sol
 
@@ -115,6 +116,7 @@ def point_wrt_body_frames(point, env, frame_i):
 
 def optimizing_across_poses(point, env, frame_i):
 
+    #env.convert_smpl_body_to_gym()
     env.human.set_base_velocity(linear_velocity=[0, 0, 0],angular_velocity=[0, 0, 0])
     # observation = env.reset()
     human_base_pose, human_orient = env.human.get_pos_orient(env.human.base) 
@@ -129,6 +131,7 @@ def optimizing_across_poses(point, env, frame_i):
 
     target_joint_angles_h, score = position_human_arm(env, evaluation_point, attempts=20)
     env.human.set_joint_angles(env.human.right_arm_joints, target_joint_angles_h)
+    
     print('ja:',target_joint_angles_h)
     score_final = score+collision_score
     f_value = score_final*10000
@@ -250,7 +253,7 @@ def cma_ws_optimizer(frame_i,env):
     x0 = get_wrist_wrt_base(env)
 
     pop_size = 2#5#3
-    iteration_size = 1#5#15
+    iteration_size = 150#5#15
     Total_f_evaluation = pop_size*iteration_size
 
     bnd_point = bound_offset(env, frame_i)
@@ -408,7 +411,7 @@ if __name__ == "__main__":
     frame_point, frame_orient =  pose_body_frames(env, frame_i)
     
     # get the 3d joint positions of the human
-    simulation_human_joint_positions = env.get_human_joint_position()
+    simulation_human_joint_positions = [0] #env.get_human_joint_position()
     
     
     #c_ = run_the_simulation(point_optimized, frame_i, env, target, orient_)
@@ -433,7 +436,7 @@ if __name__ == "__main__":
     plt.title("Online Optimization")
     plt.plot(scipy.signal.medfilt(minimization_values,kernel_size=3), color="blue")
 
-    #plt.show()
+    plt.show()
 
     time.sleep(10)
     f.close()

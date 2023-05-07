@@ -37,11 +37,12 @@ p.changeDynamics(humanoid,-1,linearDamping=0.9)
 
 
 jdict = {}
+print('number',p.getNumJoints(humanoid))
 for j in range(p.getNumJoints(humanoid)):
   p.setJointMotorControl2(humanoid, jointIndex=j, controlMode=p.VELOCITY_CONTROL, force=0)
-  p.changeDynamics(humanoid, j, linearing=1.1, angularDamping=0.1)
+  p.changeDynamics(humanoid, j, linearDamping=1.1, angularDamping=0.1)
   info = p.getJointInfo(humanoid, j)
-  #print(info)
+  print(info)
   jointName = info[1]
 
   jointType = info[2]

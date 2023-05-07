@@ -86,15 +86,6 @@ class RobotMotionEnv(AssistiveEnv):
         # Extract state variables
         gripper_position, gripper_status, object_top_position, object_bottom_position, target_position = state
 
-        # # Extract next state variables
-        # next_gripper_position, next_gripper_status, next_object_position, next_target_position = next_state
-
-        # # Calculate distances
-        # distance_to_object = np.linalg.norm(gripper_position - object_position)
-        # distance_to_target = np.linalg.norm(object_position - target_position)
-        # next_distance_to_object = np.linalg.norm(next_gripper_position - next_object_position)
-        # next_distance_to_target = np.linalg.norm(next_object_position - next_target_position)
-
         reward = 0
         on_target = np.linalg.norm(object_bottom_position - target_position) < success_threshold
 
@@ -114,13 +105,9 @@ class RobotMotionEnv(AssistiveEnv):
         reward += -BETA * np.linalg.norm(object_bottom_position - target_position)
 
         #print('object_target_dist: ', np.linalg.norm(object_bottom_position - target_position) )
-        
-
-        
-
         # constant penalty for taking unnecessary steps
         reward += PENALTY
-
+        return reward
         # # constant penalty for failure
         # if self.iteration >= self.max_steps-1:
         #     reward += failure_penalty
